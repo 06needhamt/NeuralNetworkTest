@@ -5,7 +5,13 @@
  */
 package neuralnetworktest;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.neuroph.core.NeuralNetwork;
 import org.neuroph.core.learning.SupervisedTrainingElement;
 import org.neuroph.core.learning.TrainingSet;
@@ -17,28 +23,94 @@ import org.neuroph.util.TransferFunctionType;
  * @author cnich
  */
 public class NeuralNetworkTest {
+    static final int CHRIS = 0;
+    static final int TOM = 1;
+    static final int ALEX = 2;
+    
+    static String trainName = "TrainingSet.csv";
+    static String networkName = "TestNetwork.net";
+    static String[] pathToNetwork = { 
+        "C:/NeurophLearn/NeuralNetworkTest/", 
+        "D:/GitHub/NeuralNetworkTest/NeuralNetworkTest/", 
+        "Alex path here"   
+    };
+    
+    static int pathToUse = CHRIS;
+    
+    static NeuralNetwork network;
 
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
                        
-//       train(4, 8);
+    //   trainNetwork(4, 8);
        
-        //NeuralNetwork network = NeuralNetwork.load("c:/NeurophLearn/TestNetwork.net"); chris path
-        NeuralNetwork network = NeuralNetwork.load("D:/GitHub/NeuralNetworkTest/NeuralNetworkTest/TestNetwork.net"); // toms path
-        network.setInput(1, 0, 1, 1);
-        
-        network.calculate();
-        
-        printOutput(network.getOutput());
+       loadNetwork();
+       
+       testNetwork();
 
-        System.out.println("\nDone");
+       System.out.println("\nDone");
         
     }
     
+    static void testNetwork() {
+              
+        String input = "";
+        BufferedReader fromKeyboard = new BufferedReader(new InputStreamReader(System.in));
+        ArrayList<Double> testValues = new ArrayList<>();
+        double[] testValuesDouble;
+        
+        do { // Keep accepting test strings from user until ENTER on empty input entered
+            try {
+                System.out.println("Enter test values or \"\": ");
+                input = fromKeyboard.readLine();
+                
+                if(input.equals(""))
+                    break;
+
+                input = input.replace(" ", "");
+
+                String[] stringVals = input.split(",");
+
+                testValues.clear(); // Make sure testValues list is empty
+                
+                for(String val : stringVals) {
+                    testValues.add(Double.parseDouble(val));                
+                }
+            } catch (IOException ex) {
+                Logger.getLogger(NeuralNetworkTest.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (NumberFormatException nf) {
+                Logger.getLogger(NeuralNetworkTest.class.getName()).log(Level.SEVERE, null, nf);
+            }
+
+            //network.setInput(0, 1, 1, 0.5 );
+
+            testValuesDouble = new double[testValues.size()];
+
+            for(int t = 0; t < testValues.size(); t++) {
+                testValuesDouble[t] = testValues.get(t).doubleValue();
+
+            }
+            //Double[] testValuesDouble = testValues.toArray(new Double[testValues.size()]);     
+
+            network.setInput(testValuesDouble);
+
+            network.calculate();  
+
+            printOutput(network.getOutput());
+            
+        } while (!input.equals(""));
+    }
+    
+    static void loadNetwork() {
+        network = NeuralNetwork.load(pathToNetwork[pathToUse] + networkName); // Load existing network
+
+    }
+    
+    
     // Training set specifying layer sizes (first input size, last output size)
-    static void train(int... args) {
+    static void trainNetwork(int... args) {
         int inputSize, outputSize;
         
         ArrayList<Integer> list = new ArrayList<Integer>();
@@ -52,12 +124,11 @@ public class NeuralNetworkTest {
         
         TrainingSet<SupervisedTrainingElement> trainingset = new TrainingSet<>(inputSize, outputSize); // Set input and output layer sizes
                 
-        //trainingset = TrainingSet.createFromFile("C:/NeurophLearn/TrainingSet.csv", inputSize, outputSize, ","); //chris path
-        trainingset = TrainingSet.createFromFile("D:/GitHub/NeuralNetworkTest/NeuralNetworkTest/TrainingSet.csv", inputSize, outputSize, ","); // toms path
-        network.learn(trainingset);
         
-        //network.save("c:/NeurophLearn/TestNetwork.net"); // chris path
-        network.save("D:/GitHub/NeuralNetworkTest/NeuralNetworkTest/TestNetwork.net"); // toms path
+        trainingset = TrainingSet.createFromFile(pathToNetwork[pathToUse] + trainName, inputSize, outputSize, ","); // Read in training data
+        network.learn(trainingset); // train the netowork
+        
+        network.save(pathToNetwork[pathToUse] + networkName); // Save trained network
     }
     
     
