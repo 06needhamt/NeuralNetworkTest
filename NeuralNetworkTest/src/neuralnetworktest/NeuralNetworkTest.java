@@ -27,7 +27,7 @@ public class NeuralNetworkTest {
     static final int TOM = 1;
     static final int ALEX = 2;
     
-    static String trainName = "TrainingSet.csv";
+    static String trainName = "BinaryToDec.csv";
     static String networkName = "TestNetwork.net";
     static String[] pathToNetwork = { 
         "C:/NeurophLearn/NeuralNetworkTest/", 
@@ -43,10 +43,13 @@ public class NeuralNetworkTest {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-                       
-    //   trainNetwork(4, 8);
+         
+       System.out.println("Start Training");
+       trainNetwork(4, 1);
+       System.out.println("Training Complete");
        
        loadNetwork();
+       System.out.println("Network Loaded");
        
        testNetwork();
 
@@ -83,8 +86,6 @@ public class NeuralNetworkTest {
             } catch (NumberFormatException nf) {
                 Logger.getLogger(NeuralNetworkTest.class.getName()).log(Level.SEVERE, null, nf);
             }
-
-            //network.setInput(0, 1, 1, 0.5 );
 
             testValuesDouble = new double[testValues.size()];
 
@@ -138,7 +139,7 @@ public class NeuralNetworkTest {
         System.out.print("{");
         
         for(double out : output) {
-            System.out.print(Math.round(out) + " ");
+            System.out.print(out + ", ");
         }
         
         System.out.println("}");
