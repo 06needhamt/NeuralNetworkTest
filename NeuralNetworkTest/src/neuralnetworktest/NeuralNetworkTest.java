@@ -33,11 +33,11 @@ public class NeuralNetworkTest {
     static String networkName = "TestNetwork.net";
     static String[] pathToNetwork = { 
         "C:/NeurophLearn/NeuralNetworkTest/", 
-        "D:/GitHub/NeuralNetworkTest/NeuralNetworkTest/", 
+        "D:/GitHub/NeuralNetworkTest/", 
         "C:/Users/Borgelman/Documents/GitHub/NeuralNetworkTest/"   
     };
     
-    static int pathToUse = ALEX;
+    static int pathToUse = TOM;
     
     static NeuralNetwork network;
 
