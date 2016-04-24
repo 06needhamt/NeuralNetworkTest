@@ -17,6 +17,8 @@ import org.neuroph.core.learning.SupervisedTrainingElement;
 import org.neuroph.core.learning.TrainingSet;
 import org.neuroph.nnet.MultiLayerPerceptron;
 import org.neuroph.util.TransferFunctionType;
+import org.neuroph.nnet.learning.BackPropagation;
+import org.neuroph.nnet.learning.DynamicBackPropagation;
 
 /**
  *
@@ -32,10 +34,10 @@ public class NeuralNetworkTest {
     static String[] pathToNetwork = { 
         "C:/NeurophLearn/NeuralNetworkTest/", 
         "D:/GitHub/NeuralNetworkTest/NeuralNetworkTest/", 
-        "Alex path here"   
+        "C:/Users/Borgelman/Documents/GitHub/NeuralNetworkTest/"   
     };
     
-    static int pathToUse = CHRIS;
+    static int pathToUse = ALEX;
     
     static NeuralNetwork network;
 
@@ -45,7 +47,7 @@ public class NeuralNetworkTest {
     public static void main(String[] args) {
          
        System.out.println("Start Training");
-       trainNetwork(4, 1);
+       trainNetwork(4, 12, 8, 4, 2, 1);
        System.out.println("Training Complete");
        
        loadNetwork();
@@ -127,6 +129,10 @@ public class NeuralNetworkTest {
                 
         
         trainingset = TrainingSet.createFromFile(pathToNetwork[pathToUse] + trainName, inputSize, outputSize, ","); // Read in training data
+        
+//        DynamicBackPropagation learningRule = new DynamicBackPropagation();
+        BackPropagation learningRule = new BackPropagation();
+        network.setLearningRule(learningRule);
         network.learn(trainingset); // train the netowork
         
         network.save(pathToNetwork[pathToUse] + networkName); // Save trained network
