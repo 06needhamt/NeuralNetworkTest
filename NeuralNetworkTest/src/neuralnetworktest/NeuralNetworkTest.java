@@ -29,7 +29,7 @@ public class NeuralNetworkTest {
     static final int TOM = 1;
     static final int ALEX = 2;
     
-    static String trainName = "BinaryToDec.csv";
+    static String trainName = "Classroom Occupation Data.csv";
     static String networkName = "TestNetwork.net";
     static String[] pathToNetwork = { 
         "C:/NeurophLearn/NeuralNetworkTest/", 
@@ -41,24 +41,48 @@ public class NeuralNetworkTest {
     
     static NeuralNetwork network;
 
+    static TrainingSet<SupervisedTrainingElement> trainingset;
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
          
        System.out.println("Start Training");
-       trainNetwork(4, 12, 8, 4, 2, 1);
+       //trainNetwork(8, 8, 1); trained at error rate of 0.97 DO NOT RETRAIN!!
        System.out.println("Training Complete");
        
        loadNetwork();
        System.out.println("Network Loaded");
        
        testNetwork();
+       //testNetworkAuto();
 
        System.out.println("\nDone");
         
     }
-    
+    static void testNetworkAuto(){
+        double total = 0;
+        int count = trainingset.elements().size();
+        double averageDevience = 0;
+        for(int i = 0; i < trainingset.elements().size(); i ++){
+            double expected;
+            double calculated;
+            
+            network.setInput(trainingset.elementAt(i).getInput());
+            network.calculate();
+            calculated = network.getOutput()[0];
+            expected = trainingset.elementAt(i).getIdealArray()[0];
+            System.out.println("Caculated Output: " + calculated);
+            System.out.println("Expected Output: " + expected);
+            System.out.println("Devience: " + (calculated - expected));
+            averageDevience += Math.abs(Math.abs(calculated) - Math.abs(expected));
+            total += network.getOutput()[0]; // we know there is only one output
+            
+        }
+        System.out.println();
+        System.out.println("Average: " + total / count);
+        System.out.println("Average Devience % : " + (averageDevience / count) * 100);
+    }
     static void testNetwork() {
               
         String input = "";
@@ -95,14 +119,14 @@ public class NeuralNetworkTest {
                 testValuesDouble[t] = testValues.get(t).doubleValue();
 
             }
-            //Double[] testValuesDouble = testValues.toArray(new Double[testValues.size()]);     
+ //           Double[] testValuesDouble = testValues.toArray(new Double[testValues.size()]);     
 
             network.setInput(testValuesDouble);
 
             network.calculate();  
 
             printOutput(network.getOutput());
-            
+
         } while (!input.equals(""));
     }
     
@@ -123,14 +147,14 @@ public class NeuralNetworkTest {
         inputSize = list.get(0);
         outputSize = list.get(list.size()-1);
         
-        NeuralNetwork network = new MultiLayerPerceptron(list, TransferFunctionType.SIGMOID);   
+        NeuralNetwork network = new MultiLayerPerceptron(list, TransferFunctionType.GAUSSIAN);   
         
-        TrainingSet<SupervisedTrainingElement> trainingset = new TrainingSet<>(inputSize, outputSize); // Set input and output layer sizes
+        trainingset = new TrainingSet<>(inputSize, outputSize); // Set input and output layer sizes
                 
         
         trainingset = TrainingSet.createFromFile(pathToNetwork[pathToUse] + trainName, inputSize, outputSize, ","); // Read in training data
         
-//        DynamicBackPropagation learningRule = new DynamicBackPropagation();
+        //DynamicBackPropagation learningRule = new DynamicBackPropagation();
         BackPropagation learningRule = new BackPropagation();
         network.setLearningRule(learningRule);
         network.learn(trainingset); // train the netowork
