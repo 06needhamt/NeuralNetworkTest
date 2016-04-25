@@ -47,7 +47,7 @@ public class NeuralNetworkTest {
         "C:/Users/Borgelman/Documents/GitHub/NeuralNetworkTest/"   
     };
     
-    static int pathToUse = TOM;
+    static int pathToUse = CHRIS;
     
     static NeuralNetwork network;
 
@@ -75,6 +75,8 @@ public class NeuralNetworkTest {
     static void testNetworkAuto(String setName){
         double total = 0;
         ArrayList<Integer> list = new ArrayList<Integer>();
+        ArrayList<String> outputLine = new ArrayList<>();
+        
         for(int layer : layers)
             list.add(layer);
         
@@ -84,30 +86,49 @@ public class NeuralNetworkTest {
         int count = testingset.elements().size();
         double averageDevience = 0;
         String resultString = "";
-        for(int i = 0; i < testingset.elements().size(); i ++){
-            double expected;
-            double calculated;
-            
-            network.setInput(testingset.elementAt(i).getInput());
-            network.calculate();
-            calculated = network.getOutput()[0];
-            expected = testingset.elementAt(i).getIdealArray()[0];
-            System.out.println("Caculated Output: " + calculated);
-            System.out.println("Expected Output: " + expected);
-            System.out.println("Devience: " + (calculated - expected));
-            averageDevience += Math.abs(Math.abs(calculated) - Math.abs(expected));
-            total += network.getOutput()[0]; // we know there is only one output
-            resultString += network.getOutput()[0] + ",\n";
-            
-        }
-        System.out.println();
-        System.out.println("Average: " + total / count);
-        System.out.println("Average Devience % : " + (averageDevience / count) * 100);
-        try{
+ 
+        
+        try{ // Write the Results to the file
             File file = new File("Results " + setName);
             FileWriter fw = new FileWriter(file);
             BufferedWriter bw = new BufferedWriter(fw);
-            bw.write(resultString);
+            
+            for(int i = 0; i < testingset.elements().size(); i ++){
+                double expected;
+                double calculated;
+
+                network.setInput(testingset.elementAt(i).getInput());
+                network.calculate();
+                calculated = network.getOutput()[0];
+                expected = testingset.elementAt(i).getIdealArray()[0];
+                System.out.println("Caculated Output: " + calculated);
+                System.out.println("Expected Output: " + expected);
+                System.out.println("Devience: " + (calculated - expected));
+                averageDevience += Math.abs(Math.abs(calculated) - Math.abs(expected));
+                total += network.getOutput()[0]; // we know there is only one output
+
+                resultString = "";
+
+                for(int cols = 0; cols < testingset.elementAt(i).getInputArray().length; cols ++) {
+                    resultString += testingset.elementAt(i).getInputArray()[cols] + ", ";
+                }
+
+                for(int t = 0; t < network.getOutput().length; t++) {
+
+                    resultString += network.getOutput()[t] + ", ";
+                }
+                resultString = resultString.substring(0, resultString.length()-2); // Chop off final ", "
+
+                resultString += "\n";
+            
+                bw.write(resultString);
+                bw.flush();
+            }
+
+            System.out.println();
+            System.out.println("Average: " + total / count);
+            System.out.println("Average Devience % : " + (averageDevience / count) * 100);           
+            
             bw.flush();
             bw.close();
         }
