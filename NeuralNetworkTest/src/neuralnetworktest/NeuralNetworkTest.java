@@ -6,12 +6,17 @@
 package neuralnetworktest;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.encog.engine.data.BasicEngineDataSet;
 import org.neuroph.core.NeuralNetwork;
 import org.neuroph.core.learning.SupervisedTrainingElement;
 import org.neuroph.core.learning.TrainingSet;
@@ -19,6 +24,7 @@ import org.neuroph.nnet.MultiLayerPerceptron;
 import org.neuroph.util.TransferFunctionType;
 import org.neuroph.nnet.learning.BackPropagation;
 import org.neuroph.nnet.learning.DynamicBackPropagation;
+import org.encog.engine.data.EngineDataSet;
 
 /**
  *
@@ -29,7 +35,11 @@ public class NeuralNetworkTest {
     static final int TOM = 1;
     static final int ALEX = 2;
     
+    static int inputSize = 0;
+    static int outputSize = 0;
+    
     static String trainName = "Classroom Occupation Data.csv";
+    static String testName = "Classroom Occupation Test Data.csv";
     static String networkName = "TestNetwork.net";
     static String[] pathToNetwork = { 
         "C:/NeurophLearn/NeuralNetworkTest/", 
@@ -42,46 +52,68 @@ public class NeuralNetworkTest {
     static NeuralNetwork network;
 
     static TrainingSet<SupervisedTrainingElement> trainingset;
+    static TrainingSet<SupervisedTrainingElement> testingset;
+    static int[] layers = {8,8,1}; // network layers
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
          
        System.out.println("Start Training");
-       //trainNetwork(8, 8, 1); trained at error rate of 0.97 DO NOT RETRAIN!!
+       //trainNetwork(); trained at error rate of 0.97 DO NOT RETRAIN!!
        System.out.println("Training Complete");
        
        loadNetwork();
        System.out.println("Network Loaded");
        
-       testNetwork();
-       //testNetworkAuto();
+       //testNetwork();
+       testNetworkAuto(testName);
 
        System.out.println("\nDone");
         
     }
-    static void testNetworkAuto(){
+    static void testNetworkAuto(String setName){
         double total = 0;
-        int count = trainingset.elements().size();
+        ArrayList<Integer> list = new ArrayList<Integer>();
+        for(int layer : layers)
+            list.add(layer);
+        
+        inputSize = list.get(0);
+        outputSize = list.get(list.size()-1);
+        testingset = TrainingSet.createFromFile(pathToNetwork[pathToUse] + setName, inputSize, outputSize, ",");
+        int count = testingset.elements().size();
         double averageDevience = 0;
-        for(int i = 0; i < trainingset.elements().size(); i ++){
+        String resultString = "";
+        for(int i = 0; i < testingset.elements().size(); i ++){
             double expected;
             double calculated;
             
-            network.setInput(trainingset.elementAt(i).getInput());
+            network.setInput(testingset.elementAt(i).getInput());
             network.calculate();
             calculated = network.getOutput()[0];
-            expected = trainingset.elementAt(i).getIdealArray()[0];
+            expected = testingset.elementAt(i).getIdealArray()[0];
             System.out.println("Caculated Output: " + calculated);
             System.out.println("Expected Output: " + expected);
             System.out.println("Devience: " + (calculated - expected));
             averageDevience += Math.abs(Math.abs(calculated) - Math.abs(expected));
             total += network.getOutput()[0]; // we know there is only one output
+            resultString += network.getOutput()[0] + ",\n";
             
         }
         System.out.println();
         System.out.println("Average: " + total / count);
         System.out.println("Average Devience % : " + (averageDevience / count) * 100);
+        try{
+            File file = new File("Results " + setName);
+            FileWriter fw = new FileWriter(file);
+            BufferedWriter bw = new BufferedWriter(fw);
+            bw.write(resultString);
+            bw.flush();
+            bw.close();
+        }
+        catch(IOException ex) {
+            ex.printStackTrace();
+        }
     }
     static void testNetwork() {
               
@@ -137,11 +169,10 @@ public class NeuralNetworkTest {
     
     
     // Training set specifying layer sizes (first input size, last output size)
-    static void trainNetwork(int... args) {
-        int inputSize, outputSize;
-        
+    static void trainNetwork() {
+
         ArrayList<Integer> list = new ArrayList<Integer>();
-        for(int layer : args)
+        for(int layer : layers)
             list.add(layer);
         
         inputSize = list.get(0);
