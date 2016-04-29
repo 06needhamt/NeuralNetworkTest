@@ -8,52 +8,60 @@ package neuralnetworktest;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.encog.engine.data.BasicEngineDataSet;
 import org.neuroph.core.NeuralNetwork;
 import org.neuroph.core.learning.SupervisedTrainingElement;
 import org.neuroph.core.learning.TrainingSet;
 import org.neuroph.nnet.MultiLayerPerceptron;
 import org.neuroph.util.TransferFunctionType;
 import org.neuroph.nnet.learning.BackPropagation;
-import org.neuroph.nnet.learning.DynamicBackPropagation;
-import org.encog.engine.data.EngineDataSet;
 
 /**
- *
- * @author cnich
+ * This class represents our Neural Network
+ * @author Da Vinci's Deciples
  */
 public class NeuralNetworkTest {
+    // These variables represent the path to the project on our machines
+    // if you wish to run the project on your machine please insert
+    // your path into the array below and assign the relavant index to pathToUse
+    
     static final int CHRIS = 0;
     static final int TOM = 1;
     static final int ALEX = 2;
-    
-    static int inputSize = 0;
-    static int outputSize = 0;
-    
-    static String trainName = "Classroom Occupation Data.csv";
-    static String testName = "Classroom Occupation Test Data.csv";
-    static String networkName = "TestNetwork.net";
     static String[] pathToNetwork = { 
         "C:/NeurophLearn/NeuralNetworkTest/", 
         "D:/GitHub/NeuralNetworkTest/", 
         "C:/Users/Borgelman/Documents/GitHub/NeuralNetworkTest/"   
     };
+    // these variables represent the input and output size of the network
+    static int inputSize = 0;
+    static int outputSize = 0;
     
-    static int pathToUse = CHRIS;
-    
-    static NeuralNetwork network;
+    // these variables represent the nsmes of the network and data files
+    // to use different data sets insert the name of the file here 
+    static String trainName = "Classroom Occupation Data.csv";
+    static String testName = "Classroom Occupation Test Data.csv";
+    static String networkName = "TestNetwork.net";
 
+    // this variable represents the path index to use
+    static int pathToUse = TOM;
+    
+    // this variable holds the neural network
+    static NeuralNetwork network;
+    
+    // this variable holds the training set
     static TrainingSet<SupervisedTrainingElement> trainingset;
+    
+    // this variable holds the testing set
     static TrainingSet<SupervisedTrainingElement> testingset;
-    static int[] layers = {8,8,1}; // network layers
+    
+    // this variable holds the network layers
+    static int[] layers = {8,8,1}; 
     /**
      * @param args the command line arguments
      */
@@ -66,12 +74,16 @@ public class NeuralNetworkTest {
        loadNetwork();
        System.out.println("Network Loaded");
        
-       //testNetwork();
-       testNetworkAuto(testName);
+       //testNetwork(); // test the network from manually inputted data
+       testNetworkAuto(testName); // test the network from data from the testing set
 
        System.out.println("\nDone");
         
     }
+    /**
+     * Tests the network from a saved data set
+     * @param setName the name of the data set
+     */
     static void testNetworkAuto(String setName){
         double total = 0;
         ArrayList<Integer> list = new ArrayList<Integer>();
@@ -82,7 +94,7 @@ public class NeuralNetworkTest {
         
         inputSize = list.get(0);
         outputSize = list.get(list.size()-1);
-        testingset = TrainingSet.createFromFile(pathToNetwork[pathToUse] + setName, inputSize, outputSize, ",");
+        testingset = TrainingSet.createFromFile(pathToNetwork[pathToUse] + setName, inputSize, outputSize, ","); // initialise the training set
         int count = testingset.elements().size();
         double averageDevience = 0;
         String resultString = "";
@@ -91,51 +103,54 @@ public class NeuralNetworkTest {
         try{ // Write the Results to the file
             File file = new File("Results " + setName);
             FileWriter fw = new FileWriter(file);
-            BufferedWriter bw = new BufferedWriter(fw);
+            BufferedWriter bw = new BufferedWriter(fw); // create file to write results to
             
-            for(int i = 0; i < testingset.elements().size(); i ++){
+            for(int i = 0; i < testingset.elements().size(); i ++){ // run each line of data through the network
                 double expected;
                 double calculated;
 
-                network.setInput(testingset.elementAt(i).getInput());
-                network.calculate();
-                calculated = network.getOutput()[0];
-                expected = testingset.elementAt(i).getIdealArray()[0];
-                System.out.println("Caculated Output: " + calculated);
-                System.out.println("Expected Output: " + expected);
+                network.setInput(testingset.elementAt(i).getInput()); // set the network input
+                network.calculate(); // calculate network weights
+                calculated = network.getOutput()[0]; // get the calculated outputs
+                expected = testingset.elementAt(i).getIdealArray()[0]; // get the expected outputs
+                System.out.println("Caculated Output: " + calculated); // print the calculated outputs
+                System.out.println("Expected Output: " + expected); // print the expected outputs
                 System.out.println("Devience: " + (calculated - expected));
-                averageDevience += Math.abs(Math.abs(calculated) - Math.abs(expected));
+                averageDevience += Math.abs(Math.abs(calculated) - Math.abs(expected)); //calculate the average devience
                 total += network.getOutput()[0]; // we know there is only one output
 
                 resultString = "";
 
                 for(int cols = 0; cols < testingset.elementAt(i).getInputArray().length; cols ++) {
-                    resultString += testingset.elementAt(i).getInputArray()[cols] + ", ";
+                    resultString += testingset.elementAt(i).getInputArray()[cols] + ", "; // append the inputs to the result
                 }
 
                 for(int t = 0; t < network.getOutput().length; t++) {
 
-                    resultString += network.getOutput()[t] + ", ";
+                    resultString += network.getOutput()[t] + ", "; // append the outputs to the result
                 }
                 resultString = resultString.substring(0, resultString.length()-2); // Chop off final ", "
 
                 resultString += "\n";
             
                 bw.write(resultString);
-                bw.flush();
+                bw.flush(); // write and fludh the rresult to the file
             }
 
             System.out.println();
-            System.out.println("Average: " + total / count);
-            System.out.println("Average Devience % : " + (averageDevience / count) * 100);           
+            System.out.println("Average: " + total / count); // print the average
+            System.out.println("Average Devience % : " + (averageDevience / count) * 100); //print the average devience        
             
             bw.flush();
-            bw.close();
+            bw.close(); // flush and close the file
         }
         catch(IOException ex) {
-            ex.printStackTrace();
+            ex.printStackTrace(); // if an error occurred print the stacktrace
         }
     }
+    /**
+     * Tests the network with data inputted from the console.
+     */
     static void testNetwork() {
               
         String input = "";
@@ -151,9 +166,9 @@ public class NeuralNetworkTest {
                 if(input.equals(""))
                     break;
 
-                input = input.replace(" ", "");
+                input = input.replace(" ", ""); // remove spaces from the input string
 
-                String[] stringVals = input.split(",");
+                String[] stringVals = input.split(","); // parse the inputted CSV data
 
                 testValues.clear(); // Make sure testValues list is empty
                 
@@ -169,27 +184,31 @@ public class NeuralNetworkTest {
             testValuesDouble = new double[testValues.size()];
 
             for(int t = 0; t < testValues.size(); t++) {
-                testValuesDouble[t] = testValues.get(t).doubleValue();
+                testValuesDouble[t] = testValues.get(t).doubleValue(); // unpack the list of doubles into an array
 
             }
  //           Double[] testValuesDouble = testValues.toArray(new Double[testValues.size()]);     
 
-            network.setInput(testValuesDouble);
+            network.setInput(testValuesDouble); // set the network data to the inputted values
 
-            network.calculate();  
+            network.calculate();  // calculate the network weights
 
-            printOutput(network.getOutput());
+            printOutput(network.getOutput()); // print the network's output
 
         } while (!input.equals(""));
     }
-    
+    /**
+     * Loads the neural network from the file
+     */
     static void loadNetwork() {
         network = NeuralNetwork.load(pathToNetwork[pathToUse] + networkName); // Load existing network
 
     }
     
     
-    // Training set specifying layer sizes (first input size, last output size)
+    /**
+     * Training set specifying layer sizes (first input size, last output size)
+     */ 
     static void trainNetwork() {
 
         ArrayList<Integer> list = new ArrayList<Integer>();
@@ -215,13 +234,16 @@ public class NeuralNetworkTest {
     }
     
     
-    
+    /**
+     * Prints the network output
+     * @param output the network output
+     */
     static void printOutput(double[] output) {
         System.out.println();
         System.out.print("{");
         
         for(double out : output) {
-            System.out.print(out + ", ");
+            System.out.print(out + ", "); // delimit values with a ","
         }
         
         System.out.println("}");
